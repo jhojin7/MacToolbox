@@ -33,21 +33,7 @@ final class DisplayEffectsController: ObservableObject {
     @Published private(set) var nightShiftEnabled = false
     @Published private(set) var colorFilterAvailable = false
     @Published private(set) var nightShiftAvailable = false
-    private enum StatusMessage {
-        case text(String)
-        case nightShift
-    }
-
-    @Published private var statusMessage = StatusMessage.text("")
-
-    var status: String {
-        switch statusMessage {
-        case .text(let message):
-            message
-        case .nightShift:
-            "Night Shift \(nightShiftEnabled ? "enabled" : "disabled")"
-        }
-    }
+    @Published private(set) var errorMessage: String?
 
     private let backend: DisplayEffectsBackend
     private var nightShiftStatusObserver: AnyCancellable?
@@ -78,21 +64,21 @@ final class DisplayEffectsController: ObservableObject {
 
     func setColorFilterEnabled(_ enabled: Bool) {
         guard backend.setColorFilterEnabled(enabled) else {
-            statusMessage = .text("Color Filters are unavailable on this macOS version")
+            errorMessage = "Color Filters are unavailable on this macOS version"
             refresh()
             return
         }
         colorFilterEnabled = enabled
-        statusMessage = .text("Color Filters \(enabled ? "enabled" : "disabled")")
+        errorMessage = nil
     }
 
     func setNightShiftEnabled(_ enabled: Bool) {
         guard backend.setNightShiftEnabled(enabled) else {
-            statusMessage = .text("Night Shift could not be changed")
+            errorMessage = "Night Shift could not be changed"
             refresh()
             return
         }
         refreshNightShiftStatus()
-        statusMessage = .nightShift
+        errorMessage = nil
     }
 }

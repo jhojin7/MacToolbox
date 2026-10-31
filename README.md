@@ -111,7 +111,7 @@ Checking both values prevents the blocker from closing an unrelated app that hap
 
 ## Display effects
 
-The **Color Filters** and **Night Shift** switches control the corresponding macOS display settings directly. They do not invoke Apple Shortcuts. Their state is read from the system when the app starts and refreshed as the menu-bar app updates. The Night Shift switch reads the system's current on/off setting and listens for macOS status changes. After a change request, it reads the setting back from macOS; the checkmark and Night Shift status message use that same observed value. The switch does not change the Night Shift schedule or color temperature.
+The **Color Filters** and **Night Shift** switches control the corresponding macOS display settings directly. They do not invoke Apple Shortcuts. Their state is read from the system when the app starts and refreshed as the menu-bar app updates. The Night Shift switch reads the system's current on/off setting and listens for macOS status changes. After a change request, it reads the setting back from macOS and updates the checkmark. Display effects show a message only when a change fails; successful changes do not add a status line. The switch does not change the Night Shift schedule or color temperature.
 
 These controls use macOS interfaces that Apple does not document for third-party apps: MediaAccessibility preferences for Color Filters and CoreBrightness for Night Shift. Like the built-in display control, they may require maintenance after a macOS update.
 

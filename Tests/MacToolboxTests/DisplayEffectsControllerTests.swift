@@ -4,23 +4,23 @@ import Testing
 @Suite("Display effects state")
 @MainActor
 struct DisplayEffectsControllerTests {
-    @Test("System refresh updates both the Night Shift check and message")
-    func refreshKeepsMessageInSync() {
+    @Test("System refresh updates the Night Shift check without a success message")
+    func refreshUpdatesObservedState() {
         let system = FakeDisplayEffects()
         let controller = DisplayEffectsController(backend: system.backend)
         controller.setNightShiftEnabled(true)
         #expect(controller.nightShiftEnabled)
-        #expect(controller.status == "Night Shift enabled")
+        #expect(controller.errorMessage == nil)
 
         system.nightShiftEnabled = false
         controller.refresh()
         #expect(!controller.nightShiftEnabled)
-        #expect(controller.status == "Night Shift disabled")
+        #expect(controller.errorMessage == nil)
 
         system.nightShiftEnabled = true
         controller.refresh()
         #expect(controller.nightShiftEnabled)
-        #expect(controller.status == "Night Shift enabled")
+        #expect(controller.errorMessage == nil)
     }
 
     @Test("A successful request displays the system readback, not the requested value")
@@ -32,7 +32,7 @@ struct DisplayEffectsControllerTests {
         controller.setNightShiftEnabled(true)
 
         #expect(!controller.nightShiftEnabled)
-        #expect(controller.status == "Night Shift disabled")
+        #expect(controller.errorMessage == nil)
     }
 
     @Test("A failed request preserves the observed state and reports the error")
@@ -45,27 +45,34 @@ struct DisplayEffectsControllerTests {
         controller.setNightShiftEnabled(false)
 
         #expect(controller.nightShiftEnabled)
-        #expect(controller.status == "Night Shift could not be changed")
+        #expect(controller.errorMessage == "Night Shift could not be changed")
         controller.refresh()
-        #expect(controller.status == "Night Shift could not be changed")
+        #expect(controller.errorMessage == "Night Shift could not be changed")
+
+        system.nightShiftRequestSucceeds = true
+        controller.setNightShiftEnabled(false)
+        #expect(!controller.nightShiftEnabled)
+        #expect(controller.errorMessage == nil)
     }
 
-    @Test("Refreshing Night Shift does not replace an unrelated Color Filters message")
-    func refreshPreservesColorFilterMessage() {
+    @Test("Color Filters reports failures and clears the error after success")
+    func colorFilterReportsOnlyErrors() {
         let system = FakeDisplayEffects()
         let controller = DisplayEffectsController(backend: system.backend)
+        system.colorFilterRequestSucceeds = false
         controller.setColorFilterEnabled(true)
+        #expect(controller.errorMessage == "Color Filters are unavailable on this macOS version")
 
-        system.nightShiftEnabled = true
-        controller.refresh()
-
-        #expect(controller.nightShiftEnabled)
-        #expect(controller.status == "Color Filters enabled")
+        system.colorFilterRequestSucceeds = true
+        controller.setColorFilterEnabled(true)
+        #expect(controller.colorFilterEnabled)
+        #expect(controller.errorMessage == nil)
     }
 }
 
 @MainActor
 private final class FakeDisplayEffects {
+    var colorFilterRequestSucceeds = true
     var nightShiftEnabled = false
     var nightShiftRequestSucceeds = true
     var applyNightShiftRequest = true
@@ -74,7 +81,7 @@ private final class FakeDisplayEffects {
         DisplayEffectsBackend(
             colorFilterIsAvailable: { true },
             colorFilterIsEnabled: { false },
-            setColorFilterEnabled: { _ in true },
+            setColorFilterEnabled: { _ in self.colorFilterRequestSucceeds },
             nightShiftIsAvailable: { true },
             nightShiftIsEnabled: { self.nightShiftEnabled },
             setNightShiftEnabled: { enabled in
