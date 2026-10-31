@@ -99,18 +99,18 @@ bool MTBNightShiftIsAvailable(void) {
         [client respondsToSelector:@selector(setEnabled:)];
 }
 
-bool MTBNightShiftIsActive(void) {
+bool MTBNightShiftIsEnabled(void) {
     MTBBlueLightClient *client = MTBNightShiftClient();
     // CoreBrightness's private status structure has changed between macOS
     // releases. Its first two fields remain the active and enabled BOOLs.
-    // Read the active field so a Sunset to Sunrise schedule is reflected by
-    // the menu instead of appearing enabled throughout the daytime. Reserve
-    // ample aligned storage so additions cannot overwrite our stack.
+    // The enabled field is the on/off value changed by setEnabled:.
+    // The active field can remain true while enabled is false. Reserve ample
+    // aligned storage so additions cannot overwrite our stack.
     union {
         max_align_t alignment;
         unsigned char bytes[128];
     } status = {0};
-    return client && [client getBlueLightStatus:&status] && status.bytes[0] != 0;
+    return client && [client getBlueLightStatus:&status] && status.bytes[1] != 0;
 }
 
 bool MTBSetNightShiftEnabled(bool enabled) {

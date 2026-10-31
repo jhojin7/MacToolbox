@@ -3,6 +3,27 @@ import Foundation
 import SystemControlsShim
 
 @MainActor
+struct DisplayEffectsBackend {
+    let colorFilterIsAvailable: () -> Bool
+    let colorFilterIsEnabled: () -> Bool
+    let setColorFilterEnabled: (Bool) -> Bool
+    let nightShiftIsAvailable: () -> Bool
+    let nightShiftIsEnabled: () -> Bool
+    let setNightShiftEnabled: (Bool) -> Bool
+    let startNightShiftStatusNotifications: () -> Bool
+
+    static let system = DisplayEffectsBackend(
+        colorFilterIsAvailable: { MTBColorFilterIsAvailable() },
+        colorFilterIsEnabled: { MTBColorFilterIsEnabled() },
+        setColorFilterEnabled: { MTBSetColorFilterEnabled($0) },
+        nightShiftIsAvailable: { MTBNightShiftIsAvailable() },
+        nightShiftIsEnabled: { MTBNightShiftIsEnabled() },
+        setNightShiftEnabled: { MTBSetNightShiftEnabled($0) },
+        startNightShiftStatusNotifications: { MTBStartNightShiftStatusNotifications() }
+    )
+}
+
+@MainActor
 final class DisplayEffectsController: ObservableObject {
     private static let nightShiftStatusDidChange = Notification.Name(
         "MTBNightShiftStatusDidChange"
@@ -12,11 +33,13 @@ final class DisplayEffectsController: ObservableObject {
     @Published private(set) var nightShiftEnabled = false
     @Published private(set) var colorFilterAvailable = false
     @Published private(set) var nightShiftAvailable = false
-    @Published private(set) var status = ""
+    @Published private(set) var errorMessage: String?
 
+    private let backend: DisplayEffectsBackend
     private var nightShiftStatusObserver: AnyCancellable?
 
-    init() {
+    init(backend: DisplayEffectsBackend = .system) {
+        self.backend = backend
         refresh()
         nightShiftStatusObserver = NotificationCenter.default.publisher(
             for: Self.nightShiftStatusDidChange
@@ -25,37 +48,37 @@ final class DisplayEffectsController: ObservableObject {
         .sink { [weak self] _ in
             self?.refreshNightShiftStatus()
         }
-        _ = MTBStartNightShiftStatusNotifications()
+        _ = backend.startNightShiftStatusNotifications()
     }
 
     func refresh() {
-        colorFilterAvailable = MTBColorFilterIsAvailable()
-        colorFilterEnabled = colorFilterAvailable && MTBColorFilterIsEnabled()
+        colorFilterAvailable = backend.colorFilterIsAvailable()
+        colorFilterEnabled = colorFilterAvailable && backend.colorFilterIsEnabled()
         refreshNightShiftStatus()
     }
 
     private func refreshNightShiftStatus() {
-        nightShiftAvailable = MTBNightShiftIsAvailable()
-        nightShiftEnabled = nightShiftAvailable && MTBNightShiftIsActive()
+        nightShiftAvailable = backend.nightShiftIsAvailable()
+        nightShiftEnabled = nightShiftAvailable && backend.nightShiftIsEnabled()
     }
 
     func setColorFilterEnabled(_ enabled: Bool) {
-        guard MTBSetColorFilterEnabled(enabled) else {
-            status = "Color Filters are unavailable on this macOS version"
+        guard backend.setColorFilterEnabled(enabled) else {
+            errorMessage = "Color Filters are unavailable on this macOS version"
             refresh()
             return
         }
         colorFilterEnabled = enabled
-        status = "Color Filters \(enabled ? "enabled" : "disabled")"
+        errorMessage = nil
     }
 
     func setNightShiftEnabled(_ enabled: Bool) {
-        guard MTBSetNightShiftEnabled(enabled) else {
-            status = "Night Shift could not be changed"
+        guard backend.setNightShiftEnabled(enabled) else {
+            errorMessage = "Night Shift could not be changed"
             refresh()
             return
         }
-        nightShiftEnabled = enabled
-        status = "Night Shift \(enabled ? "enabled" : "disabled")"
+        refreshNightShiftStatus()
+        errorMessage = nil
     }
 }

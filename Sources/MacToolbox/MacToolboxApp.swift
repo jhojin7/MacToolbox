@@ -61,8 +61,8 @@ struct MacToolboxApp: App {
                 set: { displayEffects.setNightShiftEnabled($0) }
             ))
             .disabled(!displayEffects.nightShiftAvailable)
-            if !displayEffects.status.isEmpty {
-                Text(displayEffects.status)
+            if let errorMessage = displayEffects.errorMessage {
+                Text(errorMessage)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
