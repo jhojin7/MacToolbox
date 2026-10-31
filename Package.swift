@@ -11,6 +11,7 @@ let package = Package(
         .executableTarget(
             name: "MacToolbox",
             dependencies: ["SystemControlsShim"],
+            resources: [.copy("Resources/MenuBarGhost.png")],
             linkerSettings: [
                 .linkedFramework("AppKit"),
                 .linkedFramework("CoreGraphics"),
