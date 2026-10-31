@@ -155,6 +155,14 @@ changing any display settings):
 scripts/test-night-shift-status.sh
 ```
 
+Repository-local verification skills are in `.agents/skills/`. Use
+`$verify-mac-toolbox` to verify a PR with native macOS Accessibility menu evidence
+and focused tests. The vendored poteto `$create-verification-skill` and
+`$maintain-verification-skill` workflows create and maintain the feature map.
+See [.agents/skills/POTETO-SOURCE.md](.agents/skills/POTETO-SOURCE.md) for provenance.
+Screenshots additionally require existing Screen Recording permission; the
+verification harness does not request or change permissions or display settings.
+
 Watch the installed app's logs:
 
 ```sh

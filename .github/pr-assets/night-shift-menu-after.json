@@ -1,0 +1,30 @@
+{
+  "evidence_type": "native macOS Accessibility snapshot, not a screenshot",
+  "app": "/Applications/Mac Toolbox.app",
+  "app_matches_packaged_build": true,
+  "display_effects_menu": [
+    {
+      "enabled": false,
+      "mark": "",
+      "title": "Display Effects"
+    },
+    {
+      "enabled": true,
+      "mark": "",
+      "title": "Color Filters"
+    },
+    {
+      "enabled": true,
+      "mark": "✓",
+      "title": "Night Shift"
+    },
+    {
+      "enabled": false,
+      "mark": "",
+      "title": ""
+    }
+  ],
+  "success_status_line_present": false,
+  "live_display_changes_performed": false,
+  "screenshot": "blocked: Screen Recording permission absent; permission left unchanged"
+}
