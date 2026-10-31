@@ -60,7 +60,7 @@ the push succeeds. Pulling a merge into `main` also updates the app automaticall
 Other branches are ignored. Git does not provide a client-side `post-push` hook,
 so `git ship` is the safe push-then-update equivalent.
 
-Once it is running, open the toolbox icon in the menu bar. Turn on **Launch at Login** if you want its rules enforced after every login.
+Once it is running, open the ghost icon in the menu bar. Turn on **Launch at Login** if you want its rules enforced after every login.
 
 ## Built-in display control
 
@@ -154,7 +154,7 @@ Watch the installed app's logs:
 log stream --style compact --predicate 'process == "MacToolbox"'
 ```
 
-The packaging script creates a conventional `.app` bundle, copies the release executable and property list into place, and applies an ad-hoc signature. There are no third-party runtime dependencies.
+The packaging script creates a conventional `.app` bundle, copies the release executable, property list, and transparent ghost menu-bar image into place, and applies an ad-hoc signature. The icon keeps its original white shading and pink tongue in both light and dark menu bars. There are no third-party runtime dependencies.
 
 ## Scope
 

@@ -75,7 +75,8 @@ struct MacToolboxApp: App {
                 NSApplication.shared.terminate(nil)
             }
         } label: {
-            Image(systemName: "wrench.and.screwdriver")
+            Image(nsImage: MenuBarIcon.image)
+                .renderingMode(.original)
                 .accessibilityLabel("Mac Toolbox")
                 .task { appDelegate.manager = manager }
         }
