@@ -51,6 +51,15 @@ requested.
 Do not commit, push, or run `git ship` unless the user explicitly asks. Never
 hide a failed push by installing the local app anyway.
 
+## Verification
+
+Use `.agents/skills/verify-mac-toolbox/SKILL.md` for PR verification. For native
+macOS menu-bar UI, prefer the included Accessibility API harness; do not assume
+the app has a normal window. Save action and AX snapshot evidence separately
+from fixture test results. Screen Recording access is separate from Accessibility;
+report blocked screenshot capture without changing permissions. Keep the feature
+map current when user-facing menu paths change.
+
 ## Architecture boundaries
 
 - `MacToolboxApp`: menu-bar UI and application lifecycle.
