@@ -120,7 +120,7 @@ These controls use macOS interfaces that Apple does not document for third-party
 
 Under **Clock**, **Announce the time** controls the macOS clock announcement setting. The checkmark reads the system preference at startup, when the menu opens, and after changes. Toggling preserves the interval, voice, rate, and volume selected in System Settings. To customize those options, use **Clock Options** in System Settings.
 
-Enabling starts Apple's existing speech service without activating its UI; changes notify the service to refresh its announcement timer. The setting persists after Mac Toolbox quits. This uses an undocumented macOS speech preference and notification and may need maintenance after macOS updates. If saving or applying the setting fails, the menu shows an error and reads back the saved preference.
+The switch uses macOS's speech-preferences setter to save the setting and tell the speech service to reload its cached configuration on both enable and disable. macOS manages the speech service, and the setting persists after Mac Toolbox quits. This uses an undocumented SpeechSynthesis API and may need maintenance after macOS updates. If saving or applying the setting fails, the menu shows an error and reads back the saved preference.
 
 ## Design
 
@@ -137,8 +137,8 @@ Mac Toolbox is a small SwiftUI and AppKit application built with Swift Package M
 | `MusicBlocker` | Launch observation, periodic checks, and termination |
 | `MusicBlockPolicy` | Exact identification of the system Music app |
 | `DisplayEffectsController` | Reads and changes Color Filters and Night Shift state |
-| `SystemControlsShim` | Narrow Objective-C bridge to the underlying macOS display-effect APIs |
-| `TimeAnnouncementController` and `TimeAnnouncementBackend` | Clock announcement state, preference preservation, and system speech-service notification |
+| `SystemControlsShim` | Narrow Objective-C bridge to the underlying macOS display-effect and speech-preference APIs |
+| `TimeAnnouncementController` and `TimeAnnouncementBackend` | Clock announcement state, preference preservation, and system speech-preference updates |
 
 The code deliberately keeps policy separate from AppKit side effects so the important decisions can be tested without changing the current display configuration or launching applications.
 
@@ -161,6 +161,14 @@ changing any display settings):
 
 ```sh
 scripts/test-night-shift-status.sh
+```
+
+Check that the real time-announcement backend uses the speech-preferences setter
+for both on and off changes (with preference access and the native setter
+intercepted inside the test process, without changing system settings):
+
+```sh
+scripts/test-time-announcement-backend.sh
 ```
 
 Repository-local verification skills are in `.agents/skills/`. Use

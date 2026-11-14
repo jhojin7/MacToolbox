@@ -75,9 +75,8 @@ struct MacToolboxApp: App {
                 .onAppear { timeAnnouncements.refresh() }
             Toggle("Announce the time", isOn: Binding(
                 get: { timeAnnouncements.isEnabled },
-                set: { enabled in Task { await timeAnnouncements.setEnabled(enabled) } }
+                set: { timeAnnouncements.setEnabled($0) }
             ))
-            .disabled(timeAnnouncements.isChanging)
             if let errorMessage = timeAnnouncements.errorMessage {
                 Text(errorMessage)
                     .font(.caption)

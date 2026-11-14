@@ -3,6 +3,27 @@
 #import <Foundation/Foundation.h>
 #import <dlfcn.h>
 
+typedef Boolean (*SetTimeAnnouncementsPreferencesFunction)(CFDictionaryRef);
+
+bool MTBSetTimeAnnouncementPreferences(CFDictionaryRef preferences) {
+    static SetTimeAnnouncementsPreferencesFunction setPreferences;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        void *handle = dlopen(
+            "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/SpeechSynthesis.framework/Versions/A/SpeechSynthesis",
+            RTLD_LAZY | RTLD_LOCAL
+        );
+        if (handle) {
+            setPreferences = (SetTimeAnnouncementsPreferencesFunction)dlsym(
+                handle, "SetTimeAnnouncementsPreferences"
+            );
+        }
+    });
+    // Unlike a CFPreferences write or the clock-format notification, this
+    // setter also tells the speech service to discard its cached preferences.
+    return setPreferences && setPreferences(preferences);
+}
+
 typedef bool (*DisplayFilterGetEnabledFunction)(int);
 typedef void (*DisplayFilterSetEnabledFunction)(int, bool);
 typedef void (*UniversalAccessStartFunction)(int);

@@ -2,6 +2,7 @@
 #define SystemControlsShim_h
 
 #include <stdbool.h>
+#include <CoreFoundation/CoreFoundation.h>
 
 bool MTBColorFilterIsAvailable(void);
 bool MTBColorFilterIsEnabled(void);
@@ -11,5 +12,7 @@ bool MTBNightShiftIsAvailable(void);
 bool MTBNightShiftIsEnabled(void);
 bool MTBSetNightShiftEnabled(bool enabled);
 bool MTBStartNightShiftStatusNotifications(void);
+
+bool MTBSetTimeAnnouncementPreferences(CFDictionaryRef preferences);
 
 #endif

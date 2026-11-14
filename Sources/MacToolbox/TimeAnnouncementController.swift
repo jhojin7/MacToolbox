@@ -1,6 +1,6 @@
-import AppKit
 import Combine
 import Foundation
+import SystemControlsShim
 
 // Keep the nested voice, interval, and any future macOS settings intact.
 struct TimeAnnouncementPreferences {
@@ -10,7 +10,8 @@ struct TimeAnnouncementPreferences {
 
     static func settingEnabled(_ enabled: Bool, in preferences: [String: Any]) -> [String: Any] {
         var updated = preferences
-        updated["TimeAnnouncementsEnabled"] = enabled
+        // The system setter reads this value using CFNumberGetValue.
+        updated["TimeAnnouncementsEnabled"] = enabled ? 1 : 0
         return updated
     }
 }
@@ -19,7 +20,6 @@ struct TimeAnnouncementPreferences {
 struct TimeAnnouncementBackend {
     let readPreferences: () throws -> [String: Any]
     let writePreferences: ([String: Any]) throws -> Void
-    let notifySystem: (Bool) async throws -> Void
 
     private static let domain = "com.apple.speech.synthesis.general.prefs" as CFString
     private static let key = "TimeAnnouncementPrefs" as CFString
@@ -36,47 +36,21 @@ struct TimeAnnouncementBackend {
             return preferences
         },
         writePreferences: { preferences in
-            CFPreferencesSetAppValue(key, preferences as CFDictionary, domain)
-            guard CFPreferencesAppSynchronize(domain) else {
+            guard MTBSetTimeAnnouncementPreferences(preferences as CFDictionary) else {
                 throw TimeAnnouncementError.preferencesUnavailable
             }
-        },
-        notifySystem: { enabled in
-            if enabled {
-                // macOS renamed SpeechSynthesisServer.app to System Speech.app.
-                // Open the system's existing service without activating its UI.
-                let directory = "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/SpeechSynthesis.framework/Versions/A"
-                guard let url = ["System Speech.app", "SpeechSynthesisServer.app"]
-                    .map({ URL(fileURLWithPath: directory).appendingPathComponent($0) })
-                    .first(where: { FileManager.default.fileExists(atPath: $0.path) }) else {
-                    throw TimeAnnouncementError.speechServiceUnavailable
-                }
-                let configuration = NSWorkspace.OpenConfiguration()
-                configuration.activates = false
-                configuration.addsToRecentItems = false
-                _ = try await NSWorkspace.shared.openApplication(at: url, configuration: configuration)
-            }
-            // The system speech service observes this notification to resync its timer.
-            DistributedNotificationCenter.default().postNotificationName(
-                Notification.Name("AppleTimePreferencesChangedNotification"),
-                object: nil,
-                userInfo: nil,
-                deliverImmediately: true
-            )
         }
     )
 }
 
 private enum TimeAnnouncementError: Error {
     case preferencesUnavailable
-    case speechServiceUnavailable
     case readbackMismatch
 }
 
 @MainActor
 final class TimeAnnouncementController: ObservableObject {
     @Published private(set) var isEnabled = false
-    @Published private(set) var isChanging = false
     @Published private(set) var errorMessage: String?
 
     private let backend: TimeAnnouncementBackend
@@ -94,14 +68,10 @@ final class TimeAnnouncementController: ObservableObject {
         }
     }
 
-    func setEnabled(_ enabled: Bool) async {
-        guard !isChanging else { return }
-        isChanging = true
-        defer { isChanging = false }
+    func setEnabled(_ enabled: Bool) {
         do {
             let preferences = try backend.readPreferences()
             try backend.writePreferences(TimeAnnouncementPreferences.settingEnabled(enabled, in: preferences))
-            try await backend.notifySystem(enabled)
             isEnabled = TimeAnnouncementPreferences.isEnabled(in: try backend.readPreferences())
             guard isEnabled == enabled else { throw TimeAnnouncementError.readbackMismatch }
             errorMessage = nil
