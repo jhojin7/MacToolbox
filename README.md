@@ -4,13 +4,14 @@ A native menu-bar app for the macOS behavior I want to control myself.
 
 I started this project because I wanted my MacBook's built-in display to switch off when I connected an external monitor—without closing the lid, mirroring displays, or turning the brightness down. It has since become a home for other small fixes that are useful every day but do not deserve a separate app.
 
-Mac Toolbox currently handles two jobs:
+Mac Toolbox currently provides:
 
 - **External-display mode** disables the built-in panel while a usable external display is connected and restores it when the last external display goes away.
 - **Apple Music blocking** closes the system Music app whenever macOS, a media key, or another service tries to launch it.
 - **Display effects** provides direct menu-bar switches for macOS Color Filters and Night Shift.
+- **Time announcements** toggles macOS **Announce the time** while preserving your interval and voice settings.
 
-Both features are independently switchable. The app has no Dock icon, remembers its settings, and can start at login.
+The features are independently switchable. The app has no Dock icon, remembers its settings, and can start at login.
 
 ## Requirements
 
@@ -115,6 +116,12 @@ The **Color Filters** and **Night Shift** switches control the corresponding mac
 
 These controls use macOS interfaces that Apple does not document for third-party apps: MediaAccessibility preferences for Color Filters and CoreBrightness for Night Shift. Like the built-in display control, they may require maintenance after a macOS update.
 
+## Time announcements
+
+Under **Clock**, **Announce the time** controls the macOS clock announcement setting. The checkmark reads the system preference at startup, when the menu opens, and after changes. Toggling preserves the interval, voice, rate, and volume selected in System Settings. To customize those options, use **Clock Options** in System Settings.
+
+Enabling starts Apple's existing speech service without activating its UI; changes notify the service to refresh its announcement timer. The setting persists after Mac Toolbox quits. This uses an undocumented macOS speech preference and notification and may need maintenance after macOS updates. If saving or applying the setting fails, the menu shows an error and reads back the saved preference.
+
 ## Design
 
 Mac Toolbox is a small SwiftUI and AppKit application built with Swift Package Manager.
@@ -131,6 +138,7 @@ Mac Toolbox is a small SwiftUI and AppKit application built with Swift Package M
 | `MusicBlockPolicy` | Exact identification of the system Music app |
 | `DisplayEffectsController` | Reads and changes Color Filters and Night Shift state |
 | `SystemControlsShim` | Narrow Objective-C bridge to the underlying macOS display-effect APIs |
+| `TimeAnnouncementController` and `TimeAnnouncementBackend` | Clock announcement state, preference preservation, and system speech-service notification |
 
 The code deliberately keeps policy separate from AppKit side effects so the important decisions can be tested without changing the current display configuration or launching applications.
 

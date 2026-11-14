@@ -15,12 +15,14 @@ struct MacToolboxApp: App {
     @StateObject private var manager: DisplayManager
     @StateObject private var musicBlocker: MusicBlocker
     @StateObject private var displayEffects: DisplayEffectsController
+    @StateObject private var timeAnnouncements: TimeAnnouncementController
 
     init() {
         let manager = DisplayManager()
         _manager = StateObject(wrappedValue: manager)
         _musicBlocker = StateObject(wrappedValue: MusicBlocker())
         _displayEffects = StateObject(wrappedValue: DisplayEffectsController())
+        _timeAnnouncements = StateObject(wrappedValue: TimeAnnouncementController())
     }
 
     var body: some Scene {
@@ -62,6 +64,21 @@ struct MacToolboxApp: App {
             ))
             .disabled(!displayEffects.nightShiftAvailable)
             if let errorMessage = displayEffects.errorMessage {
+                Text(errorMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Divider()
+            Text("Clock")
+                .font(.headline)
+                .onAppear { timeAnnouncements.refresh() }
+            Toggle("Announce the time", isOn: Binding(
+                get: { timeAnnouncements.isEnabled },
+                set: { enabled in Task { await timeAnnouncements.setEnabled(enabled) } }
+            ))
+            .disabled(timeAnnouncements.isChanging)
+            if let errorMessage = timeAnnouncements.errorMessage {
                 Text(errorMessage)
                     .font(.caption)
                     .foregroundStyle(.secondary)

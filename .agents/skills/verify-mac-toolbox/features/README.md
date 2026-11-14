@@ -7,6 +7,7 @@ It never presses setting toggles. Retain command/action evidence with the result
 menu snapshot, and distinguish inspection from functional transition tests.
 
 - [Display effects](display-effects.md): Color Filters and Night Shift, checkmarks, errors.
+- [Time announcements](time-announcements.md): system clock announcement toggle, preserved voice and interval, errors.
 - [Built-in display control](built-in-display.md): automatic external-only mode and restoration.
 - [Music blocking](music-blocking.md): independent Apple Music rule and status.
 - [Login and quit](login-and-quit.md): launch registration and normal exit.
